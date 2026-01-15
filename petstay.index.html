@@ -1,0 +1,2163 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>PetStay | Premium Pet Hotel</title>
+
+  <style>
+    /* =========================================================
+      PETSTAY — Apple-clean UI (Mobile + Desktop)
+      - Desktop: pill nav in header
+      - Mobile: compact header + hamburger drawer (fit, clean)
+      - Booking table: desktop table, mobile cards
+      - Login modal (localStorage demo)
+      ========================================================= */
+
+    :root{
+      --radius: 22px;
+      --radius-sm: 16px;
+      --pill: 999px;
+      --blur: 18px;
+
+      --teal:#17b8b0;
+      --teal2:#0fa79f;
+      --teal3:#0b7e79;
+
+      --bg:#f6fffe;
+      --bg2:#ffffff;
+      --text:#0b1a19;
+      --muted: rgba(11, 26, 25, 0.65);
+
+      --panel: rgba(255,255,255,0.74);
+      --panel2: rgba(255,255,255,0.92);
+      --stroke: rgba(12,22,22,0.10);
+
+      --btn: rgba(255,255,255,0.84);
+      --btnStroke: rgba(12,22,22,0.10);
+
+      --shadow: 0 18px 55px rgba(9,32,31,0.14);
+      --ring: 0 0 0 2px rgba(23,184,176,0.22), 0 0 0 10px rgba(23,184,176,0.10);
+      --ring2: 0 0 0 2px rgba(23,184,176,0.30), 0 0 0 14px rgba(23,184,176,0.12);
+
+      --heroOverlay: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.76));
+      --tableHead: rgba(255,255,255,0.72);
+
+      --pad: 40px;
+      --headerH: 70px;
+    }
+    html[data-theme="dark"]{
+      --bg:#071312;
+      --bg2:#050e0d;
+      --text:#eaf7f6;
+      --muted: rgba(234,247,246,0.72);
+
+      --panel: rgba(255,255,255,0.06);
+      --panel2: rgba(255,255,255,0.08);
+      --stroke: rgba(255,255,255,0.12);
+
+      --btn: rgba(255,255,255,0.06);
+      --btnStroke: rgba(255,255,255,0.12);
+
+      --shadow: 0 20px 60px rgba(0,0,0,0.55);
+      --heroOverlay: linear-gradient(180deg, rgba(0,0,0,0.08), rgba(5,14,13,0.78));
+      --tableHead: rgba(255,255,255,0.06);
+    }
+
+    @media (max-width: 980px){
+      :root{ --pad: 18px; --headerH: 66px; }
+    }
+
+    *{ box-sizing:border-box; }
+    html{ scroll-behavior:smooth; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: var(--text);
+      background:
+        radial-gradient(1100px 700px at 18% -10%, rgba(23,184,176,0.22), transparent 60%),
+        radial-gradient(900px 560px at 92% 10%, rgba(15,167,159,0.18), transparent 62%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      line-height:1.55;
+      overflow-x:hidden;
+    }
+    a{ color:inherit; text-decoration:none; }
+    img{ max-width:100%; display:block; }
+
+    .container{
+      width:min(1120px, calc(100% - var(--pad)));
+      margin:0 auto;
+    }
+
+    /* =========================================================
+      Pills / Buttons
+      ========================================================= */
+    .pill{
+      position:relative;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius: var(--pill);
+      background: var(--btn);
+      border: 1px solid var(--btnStroke);
+      box-shadow: 0 12px 26px rgba(9, 32, 31, 0.10);
+      color: color-mix(in srgb, var(--text) 92%, transparent);
+      font-size:13px;
+      letter-spacing:0.2px;
+      cursor:pointer;
+      outline:none;
+      user-select:none;
+      transition: transform .22s ease, background .22s ease, border-color .22s ease, box-shadow .22s ease;
+      white-space:nowrap;
+    }
+    .pill::before{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      border-radius: var(--pill);
+      background: radial-gradient(90px 90px at 20% 10%, rgba(255,255,255,0.22), transparent 55%);
+      opacity: 0.85;
+      pointer-events:none;
+    }
+    .pill:hover{
+      transform: translateY(-1px);
+      background: color-mix(in srgb, var(--btn) 85%, #fff 15%);
+      border-color: color-mix(in srgb, var(--teal) 42%, var(--btnStroke));
+      box-shadow: 0 16px 36px rgba(9,32,31,0.14), 0 0 0 1px rgba(23,184,176,0.10) inset;
+    }
+    .pill:active{ transform: translateY(0) scale(0.99); }
+    .pill.is-active{
+      background: color-mix(in srgb, var(--teal) 14%, var(--btn));
+      border-color: color-mix(in srgb, var(--teal) 46%, var(--btnStroke));
+      box-shadow: var(--ring);
+    }
+    .pill.primary{
+      background: linear-gradient(135deg, rgba(23,184,176,0.96), rgba(11,126,121,0.94));
+      border-color: rgba(255,255,255,0.40);
+      color:#ffffff;
+      font-weight:650;
+    }
+    .pill.primary:hover{ box-shadow: var(--ring2); }
+    .pill.icon{ padding:10px 12px; }
+    .pill.icon svg{ width:16px; height:16px; }
+
+    /* =========================================================
+      Header (Apple-clean)
+      ========================================================= */
+    header{
+      position:sticky;
+      top:0;
+      z-index:60;
+      padding-top: env(safe-area-inset-top);
+      backdrop-filter: blur(var(--blur));
+      background: color-mix(in srgb, var(--panel2) 76%, transparent);
+      border-bottom: 1px solid var(--stroke);
+    }
+    .topbar{
+      height: var(--headerH);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width: 0;
+      user-select:none;
+    }
+    .brand img{
+      width:38px; height:38px;
+      border-radius: 14px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+      border: 1px solid color-mix(in srgb, #fff 18%, transparent);
+      flex: 0 0 auto;
+    }
+    .brand-title{
+      display:flex;
+      flex-direction:column;
+      line-height:1.05;
+      min-width: 0;
+    }
+    .brand-title strong{
+      font-size:14px;
+      letter-spacing:0.6px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .brand-title span{
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 44ch;
+    }
+
+    /* Desktop nav */
+    .nav{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    /* Mobile: header actions compact (theme + login + menu) */
+    .header-actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex: 0 0 auto;
+    }
+
+    /* Login status chip (desktop only) */
+    .userchip{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 12px;
+      border-radius:999px;
+      background: color-mix(in srgb, var(--panel2) 55%, transparent);
+      border: 1px solid var(--stroke);
+      color: var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .userdot{
+      width:9px;height:9px;border-radius:999px;
+      background: color-mix(in srgb, var(--teal) 70%, #67f3e9 30%);
+      box-shadow: 0 0 0 6px rgba(23,184,176,0.14);
+    }
+
+    /* =========================================================
+      Mobile Drawer
+      ========================================================= */
+    .drawer{
+      position:fixed;
+      inset:0;
+      display:none;
+      z-index:90;
+    }
+    .drawer.is-open{ display:block; }
+    .drawer-backdrop{
+      position:absolute;
+      inset:0;
+      background: rgba(0,0,0,0.52);
+      backdrop-filter: blur(8px);
+    }
+    .drawer-panel{
+      position:absolute;
+      left: 14px;
+      right: 14px;
+      top: calc(env(safe-area-inset-top) + var(--headerH) + 10px);
+      border-radius: 22px;
+      border: 1px solid var(--stroke);
+      background: color-mix(in srgb, var(--panel2) 86%, transparent);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .drawer-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 14px;
+      border-bottom: 1px solid var(--stroke);
+    }
+    .drawer-top b{ font-size:13px; }
+    .drawer-body{
+      padding:12px;
+      display:grid;
+      gap:10px;
+    }
+    .drawer-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .drawer .pill{ width:100%; justify-content:center; padding:12px 14px; }
+    .drawer .pill.primary{ padding:12px 14px; }
+
+    .drawer-mini{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .drawer-mini .pill{ flex: 1; min-width: 150px; }
+
+    /* Desktop hides drawer + hamburger */
+    .only-mobile{ display:none; }
+    .only-desktop{ display:inline-flex; }
+    @media (max-width: 980px){
+      .only-mobile{ display:inline-flex; }
+      .only-desktop{ display:none; }
+      .nav{ display:none; }
+      .brand-title span{ max-width: 26ch; }
+    }
+
+    /* =========================================================
+      Hero
+      ========================================================= */
+    .hero{ padding: 44px 0 18px; }
+    @media (max-width: 980px){ .hero{ padding: 26px 0 10px; } }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 18px;
+      align-items:stretch;
+    }
+    @media (max-width: 980px){
+      .hero-grid{ grid-template-columns: 1fr; }
+    }
+    .card{
+      background: var(--panel);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .hero-copy{
+      padding: 28px;
+      min-height: 420px;
+    }
+    @media (max-width: 980px){
+      .hero-copy{ padding: 18px; min-height: unset; }
+    }
+
+    .kicker{
+      display:inline-flex;
+      gap:10px;
+      align-items:center;
+      padding:8px 12px;
+      border-radius:999px;
+      background: color-mix(in srgb, var(--panel2) 55%, transparent);
+      border: 1px solid var(--stroke);
+      color: color-mix(in srgb, var(--text) 88%, transparent);
+      font-size:12px;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:999px;
+      background: var(--teal);
+      box-shadow: 0 0 0 6px rgba(23,184,176,0.16);
+    }
+
+    h1{
+      margin: 14px 0 10px;
+      font-size: clamp(28px, 3.2vw, 46px);
+      letter-spacing:-0.6px;
+      line-height:1.12;
+    }
+    .lead{
+      margin:0 0 14px;
+      color: var(--muted);
+      font-size:15px;
+      max-width:56ch;
+    }
+    @media (max-width: 980px){ .lead{ font-size:14px; } }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .micro{
+      margin-top:16px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      color: var(--muted);
+      font-size:12px;
+    }
+    .micro span{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      background: color-mix(in srgb, var(--panel2) 55%, transparent);
+      border: 1px solid var(--stroke);
+    }
+    .micro i{
+      width:18px;height:18px;border-radius:999px;
+      background: color-mix(in srgb, var(--teal) 18%, transparent);
+      display:inline-grid; place-items:center;
+      border: 1px solid color-mix(in srgb, var(--teal) 30%, var(--stroke));
+      font-style:normal;
+      font-weight:800;
+      color: color-mix(in srgb, var(--text) 86%, transparent);
+      font-size:11px;
+    }
+
+    .hero-media{
+      position:relative;
+      min-height: 420px;
+    }
+    @media (max-width: 980px){ .hero-media{ min-height: unset; } }
+    .hero-media .imgwrap{ height:100%; width:100%; overflow:hidden; }
+    @media (max-width: 980px){ .hero-media .imgwrap{ height: 320px; } }
+    .hero-media img{
+      width:100%; height:100%;
+      object-fit:cover;
+      transform: scale(1.04);
+      filter: contrast(1.04) saturate(1.06);
+    }
+    .hero-media::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(600px 320px at 15% 25%, rgba(23,184,176,0.22), transparent 55%),
+        var(--heroOverlay);
+      pointer-events:none;
+    }
+
+    .floating{
+      position:absolute;
+      left:16px; right:16px; bottom:16px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      z-index:2;
+    }
+    .chip{
+      flex:1;
+      min-width:170px;
+      padding:12px 14px;
+      border-radius:16px;
+      background: color-mix(in srgb, var(--panel2) 65%, transparent);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(12px);
+    }
+    .chip b{ display:block; font-size:13px; }
+    .chip small{ color: var(--muted); }
+
+    /* =========================================================
+      Sections / Tiles
+      ========================================================= */
+    section{ padding: 32px 0; }
+    @media (max-width: 980px){ section{ padding: 24px 0; } }
+
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:14px;
+      margin-bottom: 14px;
+    }
+    .section-head h2{
+      margin:0;
+      font-size:22px;
+      letter-spacing:-0.2px;
+    }
+    .section-head p{
+      margin:0;
+      color: var(--muted);
+      font-size:13px;
+      max-width:64ch;
+    }
+    @media (max-width: 980px){
+      .section-head{ flex-direction:column; align-items:flex-start; }
+    }
+
+    .grid-3{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+    }
+    .grid-2{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:14px;
+    }
+    @media (max-width: 980px){
+      .grid-3, .grid-2{ grid-template-columns: 1fr; }
+    }
+
+    .tile{
+      padding:18px;
+      border-radius: var(--radius);
+      background: var(--panel);
+      border: 1px solid var(--stroke);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.10);
+      transition: transform .22s ease, border-color .22s ease, background .22s ease;
+      overflow:hidden;
+    }
+    html[data-theme="dark"] .tile{ box-shadow: 0 10px 40px rgba(0,0,0,0.28); }
+    .tile:hover{
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--teal) 40%, var(--stroke));
+      background: color-mix(in srgb, var(--panel2) 72%, transparent);
+    }
+    @media (max-width: 980px){
+      .tile{ padding:16px; }
+      .tile:hover{ transform:none; }
+    }
+
+    .icon-bubble{
+      width:44px;height:44px;border-radius:999px;
+      background: color-mix(in srgb, var(--teal) 16%, transparent);
+      border: 1px solid color-mix(in srgb, var(--teal) 28%, var(--stroke));
+      display:grid; place-items:center;
+      margin-bottom: 12px;
+    }
+    .tile h3{ margin:0 0 6px; font-size:15px; }
+    .tile p{ margin:0; color: var(--muted); font-size:13px; }
+
+    .media-card{ padding:0; }
+    .media-card .media{
+      height: 200px;
+      overflow:hidden;
+      border-bottom: 1px solid var(--stroke);
+    }
+    .media-card .media img{
+      width:100%; height:100%;
+      object-fit:cover;
+      filter: saturate(1.06) contrast(1.05);
+      transform: scale(1.03);
+    }
+    .media-card .content{ padding: 16px 18px 18px; }
+
+    /* =========================================================
+      Pricing list
+      ========================================================= */
+    .price{
+      display:flex;
+      align-items:baseline;
+      gap:8px;
+      margin:10px 0 12px;
+    }
+    .price strong{ font-size:26px; letter-spacing:-0.3px; }
+    .price span{ font-size:13px; color: var(--muted); }
+
+    .list{
+      margin:0; padding:0;
+      list-style:none;
+      display:grid;
+      gap:8px;
+    }
+    .list li{
+      display:flex;
+      gap:10px;
+      color: color-mix(in srgb, var(--text) 86%, transparent);
+      font-size:13px;
+      padding:8px 10px;
+      border-radius:14px;
+      background: color-mix(in srgb, var(--panel2) 55%, transparent);
+      border: 1px solid var(--stroke);
+    }
+    .tick{
+      width:18px;height:18px;border-radius:999px;
+      background: color-mix(in srgb, var(--teal) 18%, transparent);
+      border: 1px solid color-mix(in srgb, var(--teal) 34%, var(--stroke));
+      display:grid; place-items:center;
+      flex:0 0 18px;
+      font-size:12px;
+      font-weight:900;
+    }
+
+    /* =========================================================
+      Gallery
+      ========================================================= */
+    .gallery{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap:12px;
+    }
+    .gimg{
+      border-radius: 20px;
+      overflow:hidden;
+      border: 1px solid var(--stroke);
+      background: var(--panel);
+      cursor:pointer;
+      transition: transform .22s ease, border-color .22s ease;
+      min-height:140px;
+    }
+    .gimg:hover{
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--teal) 42%, var(--stroke));
+    }
+    .gimg img{
+      width:100%; height:100%;
+      object-fit:cover;
+      filter: saturate(1.06) contrast(1.05);
+      transform: scale(1.04);
+    }
+    .span-7{ grid-column: span 7; }
+    .span-5{ grid-column: span 5; }
+    .span-4{ grid-column: span 4; }
+    .span-8{ grid-column: span 8; }
+
+    @media (max-width: 980px){
+      .gallery{ grid-template-columns: repeat(2, 1fr); }
+      .span-7,.span-5,.span-4,.span-8{ grid-column: span 1; }
+      .gimg{ min-height: 150px; }
+      .gimg:hover{ transform:none; }
+    }
+
+    /* =========================================================
+      Forms
+      ========================================================= */
+    .form{ display:grid; gap:12px; }
+    .row{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:12px;
+    }
+    @media (max-width: 980px){
+      .row{ grid-template-columns: 1fr; }
+    }
+    .field{ display:grid; gap:6px; }
+    label{ font-size:12px; color: var(--muted); }
+
+    input, select, textarea{
+      width:100%;
+      padding:12px 12px;
+      border-radius:16px;
+      background: color-mix(in srgb, var(--panel2) 55%, transparent);
+      border: 1px solid var(--stroke);
+      color: var(--text);
+      outline:none;
+      transition: box-shadow .2s ease, border-color .2s ease, background .2s ease;
+      font-size:13px;
+    }
+    textarea{ min-height:110px; resize:vertical; }
+    input:focus, select:focus, textarea:focus{
+      border-color: color-mix(in srgb, var(--teal) 55%, var(--stroke));
+      box-shadow: var(--ring);
+      background: color-mix(in srgb, var(--panel2) 70%, transparent);
+    }
+    .note{
+      font-size:12px;
+      color: var(--muted);
+      margin-top:6px;
+    }
+    .inline-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    /* =========================================================
+      Booking table (Desktop)
+      ========================================================= */
+    .table-wrap{
+      overflow:auto;
+      border-radius: 18px;
+      border: 1px solid var(--stroke);
+      background: color-mix(in srgb, var(--panel2) 60%, transparent);
+    }
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      min-width: 920px;
+    }
+    thead th{
+      text-align:left;
+      font-size:12px;
+      color: color-mix(in srgb, var(--text) 78%, transparent);
+      padding:12px 12px;
+      background: var(--tableHead);
+      border-bottom: 1px solid var(--stroke);
+      position:sticky;
+      top:0;
+      backdrop-filter: blur(12px);
+    }
+    tbody td{
+      padding:12px 12px;
+      font-size:13px;
+      color: color-mix(in srgb, var(--text) 92%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--stroke) 72%, transparent);
+      vertical-align:top;
+    }
+    tbody tr:hover td{ background: color-mix(in srgb, var(--teal) 6%, transparent); }
+
+    .tag{
+      display:inline-flex;
+      padding:6px 10px;
+      border-radius:999px;
+      border: 1px solid var(--stroke);
+      background: color-mix(in srgb, var(--panel2) 55%, transparent);
+      font-size:12px;
+      color: color-mix(in srgb, var(--text) 84%, transparent);
+      white-space:nowrap;
+    }
+    .tag.ok{
+      border-color: color-mix(in srgb, var(--teal) 35%, var(--stroke));
+      background: color-mix(in srgb, var(--teal) 12%, transparent);
+    }
+
+    .btn-mini{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px 12px;
+      border-radius:999px;
+      border: 1px solid var(--stroke);
+      background: var(--btn);
+      color: color-mix(in srgb, var(--text) 92%, transparent);
+      font-size:12px;
+      cursor:pointer;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+      margin-right:6px;
+      white-space:nowrap;
+    }
+    .btn-mini:hover{
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--teal) 40%, var(--stroke));
+      box-shadow: 0 12px 26px rgba(0,0,0,0.10);
+    }
+    html[data-theme="dark"] .btn-mini:hover{ box-shadow: 0 12px 26px rgba(0,0,0,0.30); }
+    .btn-mini.danger:hover{ border-color: rgba(255,120,120,0.55); }
+    .btn-mini:active{ transform: translateY(0); }
+
+    /* Mobile: table -> cards */
+    @media (max-width: 980px){
+      .table-wrap{ overflow:visible; border:none; background:transparent; }
+      table{ min-width:0; border-collapse:collapse; }
+      thead{ display:none; }
+      tbody, tr, td{ display:block; width:100%; }
+      tbody tr{
+        margin-bottom: 12px;
+        border-radius: 18px;
+        border: 1px solid var(--stroke);
+        background: color-mix(in srgb, var(--panel2) 70%, transparent);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+        overflow:hidden;
+      }
+      html[data-theme="dark"] tbody tr{ box-shadow: 0 12px 28px rgba(0,0,0,0.28); }
+      tbody td{
+        padding: 10px 12px;
+        border-bottom: 1px solid color-mix(in srgb, var(--stroke) 70%, transparent);
+      }
+      tbody td::before{
+        content: attr(data-label);
+        display:block;
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      tbody td:last-child{ border-bottom:none; }
+      .btn-mini{
+        width: 48%;
+        margin: 6px 2% 0 0;
+      }
+    }
+
+    /* =========================================================
+      Footer
+      ========================================================= */
+    footer{
+      padding: 30px 0 42px;
+      border-top: 1px solid var(--stroke);
+      background: color-mix(in srgb, var(--panel2) 55%, transparent);
+      padding-bottom: calc(42px + env(safe-area-inset-bottom));
+    }
+    .foot{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
+    .foot small{ color: var(--muted); }
+
+    /* =========================================================
+      Lightbox + Modals
+      ========================================================= */
+    .overlay{
+      position:fixed;
+      inset:0;
+      display:none;
+      place-items:center;
+      background: rgba(0,0,0,0.56);
+      backdrop-filter: blur(10px);
+      z-index:100;
+      padding:24px;
+    }
+    .overlay.is-open{ display:grid; }
+    .overlay-card{
+      width:min(980px, 100%);
+      border-radius: 22px;
+      overflow:hidden;
+      border: 1px solid color-mix(in srgb, #fff 18%, transparent);
+      background: color-mix(in srgb, var(--panel2) 70%, transparent);
+      box-shadow: var(--shadow);
+    }
+    .overlay-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px 14px;
+      border-bottom: 1px solid var(--stroke);
+    }
+    .overlay-top b{ font-size:13px; }
+    .overlay-body{
+      max-height:72vh;
+      overflow:auto;
+      background: color-mix(in srgb, #000 6%, transparent);
+    }
+    .overlay-body img{ width:100%; height:auto; display:block; }
+
+    /* Auth modal smaller */
+    .auth-card{ width:min(520px, 100%); }
+    .seg{
+      display:flex;
+      gap:8px;
+      padding:8px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: color-mix(in srgb, var(--panel2) 55%, transparent);
+      margin-bottom:12px;
+      width:max-content;
+    }
+    .seg button{
+      border:none;
+      background:transparent;
+      padding:8px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      color: color-mix(in srgb, var(--text) 88%, transparent);
+      font-size:12px;
+      transition: background .2s ease, box-shadow .2s ease;
+    }
+    .seg button.is-on{
+      background: color-mix(in srgb, var(--teal) 14%, transparent);
+      box-shadow: var(--ring);
+    }
+
+    /* =========================================================
+      Mobile bottom bar (Apple clean quick actions)
+      ========================================================= */
+    .mobilebar{
+      display:none;
+    }
+    @media (max-width: 980px){
+      .mobilebar{
+        position:fixed;
+        left:12px;
+        right:12px;
+        bottom: calc(12px + env(safe-area-inset-bottom));
+        z-index:70;
+        display:flex;
+        gap:10px;
+        padding:10px;
+        border-radius: 22px;
+        border: 1px solid var(--stroke);
+        background: color-mix(in srgb, var(--panel2) 86%, transparent);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+      .mobilebar .pill{ flex:1; padding:12px 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ===================== HEADER ===================== -->
+  <header>
+    <div class="container">
+      <div class="topbar">
+        <a class="brand" href="#top" aria-label="Go to top">
+          <img src="https://i.pinimg.com/736x/e7/4b/53/e74b532fcbb7384f8e2e1aaf2b8aef03.jpg" alt="PetStay logo">
+          <div class="brand-title">
+            <strong>PETSTAY</strong>
+            <span>Calm Stay, Happy Tails.</span>
+          </div>
+        </a>
+
+        <!-- Desktop nav -->
+        <nav class="nav only-desktop" aria-label="Primary navigation">
+          <a class="pill navlink" href="#about">About</a>
+          <a class="pill navlink" href="#facilities">Facilities</a>
+          <a class="pill navlink" href="#pricing">Pricing</a>
+          <a class="pill navlink" href="#gallery">Gallery</a>
+          <a class="pill navlink" href="#contact">Contact Us</a>
+          <a class="pill primary navlink" href="#booking">Booking</a>
+
+          <span class="userchip" id="userChip" style="display:none;">
+            <span class="userdot" aria-hidden="true"></span>
+            <span id="userChipText">Logged in</span>
+          </span>
+
+          <button class="pill" id="authBtn" type="button">Login</button>
+
+          <button class="pill icon" id="themeBtn" type="button" aria-label="Toggle theme">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M12 19v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M4.22 5.22l1.41 1.41" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M18.36 18.36l1.41 1.41" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M3 12h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M19 12h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M5.63 18.36l-1.41 1.41" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M19.78 5.22l-1.41 1.41" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" stroke="currentColor" stroke-width="1.7"/>
+            </svg>
+            <span id="themeLabel">Auto</span>
+          </button>
+        </nav>
+
+        <!-- Mobile actions -->
+        <div class="header-actions only-mobile">
+          <button class="pill icon" id="themeBtnM" type="button" aria-label="Toggle theme">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M12 19v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M3 12h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M19 12h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" stroke="currentColor" stroke-width="1.7"/>
+            </svg>
+          </button>
+
+          <button class="pill icon" id="authBtnM" type="button" aria-label="Login">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" stroke="currentColor" stroke-width="1.7"/>
+              <path d="M4 21a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            </svg>
+          </button>
+
+          <button class="pill icon" id="menuBtn" type="button" aria-label="Open menu">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5 7h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M5 17h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== MOBILE DRAWER ===================== -->
+  <div class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+    <div class="drawer-panel" role="dialog" aria-modal="true" aria-label="Mobile menu">
+      <div class="drawer-top">
+        <b>Menu</b>
+        <button class="pill" id="drawerClose" type="button">Close</button>
+      </div>
+      <div class="drawer-body">
+        <div class="drawer-mini">
+          <span class="userchip" id="userChipM" style="display:none; width:100%; justify-content:center;">
+            <span class="userdot" aria-hidden="true"></span>
+            <span id="userChipTextM">Logged in</span>
+          </span>
+          <button class="pill" id="drawerAuthBtn" type="button">Login</button>
+          <button class="pill" id="drawerThemeBtn" type="button">Theme: <span id="drawerThemeLabel">Auto</span></button>
+        </div>
+
+        <div class="drawer-grid">
+          <a class="pill navlink" href="#about">About</a>
+          <a class="pill navlink" href="#facilities">Facilities</a>
+          <a class="pill navlink" href="#pricing">Pricing</a>
+          <a class="pill navlink" href="#gallery">Gallery</a>
+          <a class="pill navlink" href="#contact">Contact Us</a>
+          <a class="pill primary navlink" href="#booking">Booking</a>
+        </div>
+
+        <button class="pill" type="button" id="btnShuffleM">Shuffle Gallery</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== HERO ===================== -->
+  <main id="top" class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="card hero-copy">
+          <div class="kicker">
+            <span class="dot" aria-hidden="true"></span>
+            Premium Pet Hotel • Luxury Care • Easy Booking
+          </div>
+
+          <h1>Premium pet hotel care, designed like a resort.</h1>
+          <p class="lead">
+            PetStay combines comfort, safety, and enrichment—spa grooming, private suites, calm play zones, and support available 24/7.
+          </p>
+
+          <div class="hero-actions">
+            <a class="pill primary" href="#booking">Book Now</a>
+            <a class="pill" href="#pricing">View Pricing</a>
+            <button class="pill" id="btnTour" type="button">Quick Tour</button>
+          </div>
+
+          <div class="micro" aria-label="Highlights">
+            <span><i>✓</i>Luxury suites</span>
+            <span><i>✓</i>Daily play</span>
+            <span><i>✓</i>Spa add-ons</span>
+            <span><i>✓</i>Instant quote</span>
+          </div>
+        </div>
+
+        <div class="card hero-media" aria-label="Hero image">
+          <div class="imgwrap">
+            <img src="https://t3.ftcdn.net/jpg/17/64/50/62/360_F_1764506239_TmV7LZ1610WHrQ6He8UGLGNJYEiSfQlY.jpg" alt="Luxury PetStay suite hero photo">
+          </div>
+
+          <div class="floating" aria-hidden="true">
+            <div class="chip">
+              <b>Suite Comfort</b>
+              <small>Quiet design + premium bedding</small>
+            </div>
+            <div class="chip">
+              <b>Enrichment</b>
+              <small>Supervised play + rest balance</small>
+            </div>
+            <div class="chip">
+              <b>Transparent Quote</b>
+              <small>Auto price calculation</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===================== ABOUT ===================== -->
+  <section id="about">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2>About PetStay</h2>
+          <p>A luxury pet hotel experience with a calm, premium interface—easy to trust, easy to book.</p>
+        </div>
+        <a class="pill" href="#facilities">Explore Facilities</a>
+      </div>
+
+      <div class="grid-3">
+        <div class="tile">
+          <div class="icon-bubble" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M7 12c0-2.8 2.2-5 5-5s5 2.2 5 5v2c0 2.2-1.8 4-4 4H11c-2.2 0-4-1.8-4-4v-2Z" stroke="currentColor" stroke-width="1.7"/>
+              <path d="M9 10.5c.6-.8 1.7-1.5 3-1.5s2.4.7 3 1.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>Care-first routines</h3>
+          <p>Structured check-in, supervised activity, and calm rest cycles for safety and wellbeing.</p>
+        </div>
+
+        <div class="tile">
+          <div class="icon-bubble" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M5 13c2.5 0 2.5-4 5-4s2.5 4 5 4 2.5-4 5-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M5 17c2.5 0 2.5-4 5-4s2.5 4 5 4 2.5-4 5-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" opacity="0.7"/>
+            </svg>
+          </div>
+          <h3>Luxury environment</h3>
+          <p>Premium bedding, quiet zones, and a boutique brand feel—designed for calm.</p>
+        </div>
+
+        <div class="tile">
+          <div class="icon-bubble" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 8.3l5-.7L12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3>Apple-clean UI</h3>
+          <p>Round buttons, smooth layout, and mobile-first design—simple, premium, and consistent.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FACILITIES ===================== -->
+  <section id="facilities">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2>Facilities</h2>
+          <p>Designed for comfort and hygiene: private suites, spa grooming, and enrichment play zones.</p>
+        </div>
+        <a class="pill" href="#booking">Reserve a Suite</a>
+      </div>
+
+      <div class="grid-3">
+        <div class="tile media-card">
+          <div class="media">
+            <img src="https://luxepethotels.com/wp-content/uploads/2025/05/Luxe-Pet-Hotel-Small-37.jpg" alt="Private luxury dog suites">
+          </div>
+          <div class="content">
+            <h3>Private Suites</h3>
+            <p>Quiet, temperature-controlled suites with premium bedding and soft lighting.</p>
+          </div>
+        </div>
+
+        <div class="tile media-card">
+          <div class="media">
+            <img src="https://images.squarespace-cdn.com/content/v1/5e57f1fa11adeb18cf1698f3/1598028499277-2NRBYLNNRGD24QOUF3SO/pet-spa-p.jpg" alt="Spa grooming and care area">
+          </div>
+          <div class="content">
+            <h3>Spa & Grooming</h3>
+            <p>Bath, dry, brush, nail care—calm handling with hygiene-first procedures.</p>
+          </div>
+        </div>
+
+        <div class="tile media-card">
+          <div class="media">
+            <img src="https://images.ctfassets.net/rt5zmd3ipxai/33e1aQDVnIWJtT6GXSGmeP/511157d523207b570cc7254f20f7c8c1/NVA_-_PetSuites_-MASTER-_Blog_-_Enrichment___Soda_Pup__Petsuties_dog_running_over_obstacle_.jpg?fit=fill&fm=webp&h=578&w=1070&q=72" alt="Indoor enrichment and play area">
+          </div>
+          <div class="content">
+            <h3>Enrichment & Play</h3>
+            <p>Supervised play sessions and enrichment toys—balanced with rest time.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PRICING ===================== -->
+  <section id="pricing">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2>Pricing</h2>
+          <p>Pick a plan. Your quote is calculated automatically in the booking form.</p>
+        </div>
+        <a class="pill" href="#booking">Get Instant Quote</a>
+      </div>
+
+      <div class="grid-3">
+        <div class="tile">
+          <div class="icon-bubble" aria-hidden="true"><span style="font-weight:900;">C</span></div>
+          <h3>Classic Stay</h3>
+          <div class="price"><strong>HK$ 320</strong><span>/ night</span></div>
+          <ul class="list">
+            <li><span class="tick">✓</span>Cozy Paw Suit</li>
+            <li><span class="tick">✓</span>Daily supervised play</li>
+            <li><span class="tick">✓</span>Basic updates</li>
+            <li><span class="tick">✓</span>Clean routine</li>
+          </ul>
+          <div class="inline-actions" style="margin-top:14px;">
+            <a class="pill" href="#booking" data-plan="Classic">Select</a>
+          </div>
+        </div>
+
+        <div class="tile" style="border-color: color-mix(in srgb, var(--teal) 45%, var(--stroke)); box-shadow: var(--ring);">
+          <div class="icon-bubble" aria-hidden="true"><span style="font-weight:900;">S</span></div>
+          <h3>Signature Suite</h3>
+          <div class="price"><strong>HK$ 620</strong><span>/ night</span></div>
+          <ul class="list">
+            <li><span class="tick">✓</span>Premium Paw Suite</li>
+            <li><span class="tick">✓</span>2× enrichment sessions</li>
+            <li><span class="tick">✓</span>Photo updates</li>
+            <li><span class="tick">✓</span>Priority check-in</li>
+          </ul>
+          <div class="inline-actions" style="margin-top:14px;">
+            <a class="pill primary" href="#booking" data-plan="Signature">Select</a>
+          </div>
+        </div>
+
+        <div class="tile">
+          <div class="icon-bubble" aria-hidden="true"><span style="font-weight:900;">E</span></div>
+          <h3>Elite Care</h3>
+          <div class="price"><strong>HK$ 920</strong><span>/ night</span></div>
+          <ul class="list">
+            <li><span class="tick">✓</span>Penthouse Paw Suite</li>
+            <li><span class="tick">✓</span>Grooming included</li>
+            <li><span class="tick">✓</span>3× enrichment sessions</li>
+            <li><span class="tick">✓</span>Daily report</li>
+          </ul>
+          <div class="inline-actions" style="margin-top:14px;">
+            <a class="pill" href="#booking" data-plan="Elite">Select</a>
+          </div>
+        </div>
+      </div>
+
+      <p class="note">Tip: Adjust dates, plan, and add-ons in Booking. The quote updates instantly.</p>
+    </div>
+  </section>
+
+  <!-- ===================== GALLERY ===================== -->
+  <section id="gallery">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2>Gallery</h2>
+          <p>Tap any photo to open. Shuffle for a dynamic premium feel.</p>
+        </div>
+        <button class="pill" type="button" id="btnShuffle">Shuffle</button>
+      </div>
+
+      <div class="gallery" id="galleryGrid">
+        <div class="gimg span-7" data-caption="Signature Suite — premium comfort">
+          <img src="https://cdn.shopify.com/s/files/1/0519/6157/files/adorable-beagle-dog-lounging-at-home-with-a-cozy-2023-11-27-05-10-17-utc_1_600x600.jpg?v=1724824558" alt="PetStay Signature Suite">
+        </div>
+        <div class="gimg span-5" data-caption="Enrichment — supervised play">
+          <img src="https://luxurylaunches.com/wp-content/uploads/2023/08/my-second-home-in-dubai-2.jpg" alt="Pet enrichment area">
+        </div>
+        <div class="gimg span-4" data-caption="Spa Care — hygiene-first grooming">
+          <img src="https://static.standard.co.uk/2025/02/05/15/57/Miami-Residences_Pet-Spa.jpg?width=1200&auto=webp&quality=75" alt="Pet spa grooming">
+        </div>
+        <div class="gimg span-8" data-caption="Lounge Zone — calm space">
+          <img src="https://res.klook.com/images/fl_lossy.progressive,q_65/c_crop,x_0,y_840,h_840,w_1416/activities/skbogp9muuxmmjul5rxt/PetCafeandLoungeinBaliPetNirvana.jpg" alt="Pet lounge zone">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CONTACT ===================== -->
+  <section id="contact">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2>Contact Us</h2>
+          <p>Send a message. This demo form shows confirmation and resets (safe for assignments).</p>
+        </div>
+        <a class="pill" href="#booking">Go to Booking</a>
+      </div>
+
+      <div class="grid-2">
+        <div class="tile">
+          <h3 style="margin:0 0 10px;">Message</h3>
+          <form class="form" id="contactForm">
+            <div class="row">
+              <div class="field">
+                <label for="cName">Your Name</label>
+                <input id="cName" name="cName" type="text" placeholder="e.g., Alex Chan" required />
+              </div>
+              <div class="field">
+                <label for="cEmail">Email</label>
+                <input id="cEmail" name="cEmail" type="email" placeholder="e.g., alex@email.com" required />
+              </div>
+            </div>
+            <div class="field">
+              <label for="cMsg">Message</label>
+              <textarea id="cMsg" name="cMsg" placeholder="Dates, pet info, preferences..." required></textarea>
+            </div>
+            <div class="inline-actions">
+              <button class="pill primary" type="submit">Send Message</button>
+              <span class="note" id="contactNote"></span>
+            </div>
+          </form>
+        </div>
+
+        <div class="tile">
+          <h3 style="margin:0 0 10px;">Hotel Info</h3>
+          <p style="margin:0 0 12px; color: var(--muted);">
+            PetStay — Premium Pet Hotel<br/>
+            Hours: 08:00–20:00 • Daily<br/>
+            Services: Suites • Spa • Enrichment • Daycare
+          </p>
+
+          <div class="grid-2" style="margin-top:12px;">
+            <div class="tile" style="box-shadow:none;">
+              <div class="icon-bubble" aria-hidden="true" style="margin-bottom:10px;">
+                <span style="font-weight:900;">HK</span>
+              </div>
+              <h3 style="margin:0 0 6px;">Location</h3>
+              <p>Hong Kong (Victoria Harbour Area)</p>
+            </div>
+            <div class="tile" style="box-shadow:none;">
+              <div class="icon-bubble" aria-hidden="true" style="margin-bottom:10px;">
+                <span style="font-weight:900;">24</span>
+              </div>
+              <h3 style="margin:0 0 6px;">Care</h3>
+              <p>Supervised routines + calm handling</p>
+            </div>
+          </div>
+
+          <p class="note">You can keep contact details minimal for school submission.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== BOOKING ===================== -->
+  <section id="booking">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2>Booking</h2>
+          <p>Working booking system: instant quote + add/edit/delete bookings + saved in browser storage.</p>
+        </div>
+        <button class="pill" type="button" id="btnClearAll">Clear All</button>
+      </div>
+
+      <div class="grid-2">
+        <div class="tile">
+          <h3 style="margin:0 0 12px;">Booking Form</h3>
+
+          <form class="form" id="bookingForm">
+            <div class="row">
+              <div class="field">
+                <label for="ownerName">Owner Name</label>
+                <input id="ownerName" name="ownerName" type="text" placeholder="e.g., Jamie Wong" required />
+              </div>
+              <div class="field">
+                <label for="ownerEmail">Owner Email</label>
+                <input id="ownerEmail" name="ownerEmail" type="email" placeholder="e.g., jamie@email.com" required />
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="dogName">Pet Name</label>
+                <input id="dogName" name="dogName" type="text" placeholder="e.g., Momo" required />
+              </div>
+              <div class="field">
+                <label for="dogSize">Pet Size</label>
+                <select id="dogSize" name="dogSize" required>
+                  <option value="Small">Small (0–8kg)</option>
+                  <option value="Medium">Medium (9–18kg)</option>
+                  <option value="Large">Large (19kg+)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="plan">Plan</label>
+                <select id="plan" name="plan" required>
+                  <option value="Classic">Classic Stay — HK$480/night</option>
+                  <option value="Signature" selected>Signature Suite — HK$680/night</option>
+                  <option value="Elite">Elite Care — HK$920/night</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="addOn">Add-On</label>
+                <select id="addOn" name="addOn">
+                  <option value="None" selected>None</option>
+                  <option value="Grooming">Grooming (+HK$220)</option>
+                  <option value="ExtraPlay">Extra Play (+HK$120)</option>
+                  <option value="Pickup">Pickup & Drop (+HK$300)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="checkIn">Check-In Date</label>
+                <input id="checkIn" name="checkIn" type="date" required />
+              </div>
+              <div class="field">
+                <label for="checkOut">Check-Out Date</label>
+                <input id="checkOut" name="checkOut" type="date" required />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="notes">Special Notes</label>
+              <input id="notes" name="notes" type="text" placeholder="Diet, temperament, medication notes (optional)" />
+            </div>
+
+            <div class="tile" style="box-shadow:none; margin-top:6px;">
+              <h3 style="margin:0 0 8px; font-size:14px;">Instant Quote</h3>
+              <div class="row">
+                <div>
+                  <div class="note">Nights</div>
+                  <div style="font-size:18px; font-weight:800;" id="qNights">—</div>
+                </div>
+                <div>
+                  <div class="note">Total (HK$)</div>
+                  <div style="font-size:18px; font-weight:800;" id="qTotal">—</div>
+                </div>
+              </div>
+              <div class="note" id="qBreakdown" style="margin-top:8px;"></div>
+            </div>
+
+            <div class="inline-actions">
+              <button class="pill primary" type="submit" id="btnSubmitBooking">Add Booking</button>
+              <button class="pill" type="button" id="btnResetForm">Reset</button>
+              <span class="note" id="bookingNote"></span>
+            </div>
+
+            <input type="hidden" id="editId" value="" />
+          </form>
+        </div>
+
+        <div class="tile">
+          <h3 style="margin:0 0 12px;">Booking Table (Working)</h3>
+          <div class="table-wrap" aria-label="Booking table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Booking ID</th>
+                  <th>Owner</th>
+                  <th>Pet</th>
+                  <th>Plan</th>
+                  <th>Dates</th>
+                  <th>Nights</th>
+                  <th>Add-On</th>
+                  <th>Total (HK$)</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="bookingTbody"></tbody>
+            </table>
+          </div>
+
+          <p class="note" style="margin-top:10px;">
+            Saved using localStorage. Refresh the page and bookings stay.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer>
+    <div class="container">
+      <div class="foot">
+        <div>
+          <div class="brand" style="gap:10px;">
+            <img src="https://i.pinimg.com/736x/e7/4b/53/e74b532fcbb7384f8e2e1aaf2b8aef03.jpg" alt="PetStay logo">
+            <div class="brand-title">
+              <strong>PETSTAY</strong>
+              <span>Premium Pet Hotel</span>
+            </div>
+          </div>
+          <small>© <span id="year"></span> PetStay. Apple-clean UI with working booking + login demo.</small>
+        </div>
+
+        <div class="inline-actions">
+          <a class="pill" href="#about">Back to About</a>
+          <a class="pill primary" href="#booking">Book</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================== MOBILE BOTTOM BAR ===================== -->
+  <div class="mobilebar" aria-label="Quick actions">
+    <a class="pill" href="#gallery">Gallery</a>
+    <a class="pill primary" href="#booking">Book</a>
+  </div>
+
+  <!-- ===================== GALLERY LIGHTBOX ===================== -->
+  <div class="overlay" id="lightbox" aria-hidden="true">
+    <div class="overlay-card" role="dialog" aria-modal="true" aria-label="Gallery preview">
+      <div class="overlay-top">
+        <b id="lbCaption">Preview</b>
+        <button class="pill" id="lbClose" type="button">Close</button>
+      </div>
+      <div class="overlay-body">
+        <img id="lbImg" src="" alt="Gallery preview">
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== AUTH MODAL ===================== -->
+  <div class="overlay" id="authModal" aria-hidden="true">
+    <div class="overlay-card auth-card" role="dialog" aria-modal="true" aria-label="Login and Sign up">
+      <div class="overlay-top">
+        <b id="authTitle">Login</b>
+        <button class="pill" id="authClose" type="button">Close</button>
+      </div>
+      <div class="overlay-body" style="background: transparent;">
+        <div style="padding:16px 18px 18px;">
+          <div class="seg" role="tablist" aria-label="Auth tabs">
+            <button type="button" id="tabLogin" class="is-on" aria-selected="true">Login</button>
+            <button type="button" id="tabSignup" aria-selected="false">Sign up</button>
+          </div>
+
+          <form class="form" id="authForm">
+            <div class="field" id="nameField">
+              <label for="aName">Name (Sign up only)</label>
+              <input id="aName" type="text" placeholder="e.g., Jamie Wong" />
+            </div>
+
+            <div class="field">
+              <label for="aEmail">Email</label>
+              <input id="aEmail" type="email" placeholder="e.g., jamie@email.com" required />
+            </div>
+
+            <div class="field">
+              <label for="aPass">Password</label>
+              <input id="aPass" type="password" placeholder="Minimum 6 characters" required />
+            </div>
+
+            <div class="inline-actions">
+              <button class="pill primary" type="submit" id="authSubmitBtn">Login</button>
+              <span class="note" id="authNote"></span>
+            </div>
+
+            <p class="note" style="margin-top:10px;">
+              Demo login for assignments. Accounts are saved in your browser (localStorage).
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================
+    // Theme (Auto -> Light -> Dark) with memory
+    // =========================================================
+    const THEME_KEY = "petstay_theme_v2";
+    const html = document.documentElement;
+
+    const themeBtnDesktop = document.getElementById("themeBtn");
+    const themeLabelDesktop = document.getElementById("themeLabel");
+
+    const themeBtnMobile = document.getElementById("themeBtnM");
+    const drawerThemeBtn = document.getElementById("drawerThemeBtn");
+    const drawerThemeLabel = document.getElementById("drawerThemeLabel");
+
+    function systemPrefersDark(){
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+
+    function setThemeLabel(mode){
+      const t = mode.charAt(0).toUpperCase() + mode.slice(1);
+      if(themeLabelDesktop) themeLabelDesktop.textContent = mode === "auto" ? "Auto" : t;
+      if(drawerThemeLabel) drawerThemeLabel.textContent = mode === "auto" ? "Auto" : t;
+    }
+
+    function applyTheme(mode){
+      if(mode === "auto"){
+        const actual = systemPrefersDark() ? "dark" : "light";
+        html.setAttribute("data-theme", actual);
+        html.setAttribute("data-theme-mode", "auto");
+      } else {
+        html.setAttribute("data-theme", mode);
+        html.removeAttribute("data-theme-mode");
+      }
+      setThemeLabel(mode);
+    }
+
+    function getSavedTheme(){
+      return localStorage.getItem(THEME_KEY) || "auto";
+    }
+
+    function saveTheme(mode){
+      localStorage.setItem(THEME_KEY, mode);
+    }
+
+    function cycleTheme(){
+      const current = getSavedTheme();
+      const next = current === "auto" ? "light" : current === "light" ? "dark" : "auto";
+      saveTheme(next);
+      applyTheme(next);
+    }
+
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if(mq && mq.addEventListener){
+      mq.addEventListener("change", () => {
+        if(getSavedTheme() === "auto") applyTheme("auto");
+      });
+    }
+
+    if(themeBtnDesktop) themeBtnDesktop.addEventListener("click", cycleTheme);
+    if(themeBtnMobile) themeBtnMobile.addEventListener("click", cycleTheme);
+    if(drawerThemeBtn) drawerThemeBtn.addEventListener("click", cycleTheme);
+
+    applyTheme(getSavedTheme());
+
+    // =========================================================
+    // Helpers
+    // =========================================================
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    function daysBetween(startISO, endISO){
+      const s = new Date(startISO);
+      const e = new Date(endISO);
+      const ms = e - s;
+      return Math.round(ms / (1000 * 60 * 60 * 24));
+    }
+
+    function formatDateISO(iso){
+      if(!iso) return "—";
+      const d = new Date(iso + "T00:00:00");
+      return d.toLocaleDateString(undefined, {year:"numeric", month:"short", day:"2-digit"});
+    }
+
+    function uid(){
+      return "PS-" + Math.random().toString(16).slice(2, 6).toUpperCase() + "-" + Date.now().toString().slice(-5);
+    }
+
+    function escapeHtml(str){
+      return String(str ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // =========================================================
+    // Drawer (Mobile menu)
+    // =========================================================
+    const drawer = $("#drawer");
+    const menuBtn = $("#menuBtn");
+    const drawerBackdrop = $("#drawerBackdrop");
+    const drawerClose = $("#drawerClose");
+
+    function openDrawer(){
+      if(!drawer) return;
+      drawer.classList.add("is-open");
+      drawer.setAttribute("aria-hidden","false");
+    }
+    function closeDrawer(){
+      if(!drawer) return;
+      drawer.classList.remove("is-open");
+      drawer.setAttribute("aria-hidden","true");
+    }
+
+    if(menuBtn) menuBtn.addEventListener("click", openDrawer);
+    if(drawerBackdrop) drawerBackdrop.addEventListener("click", closeDrawer);
+    if(drawerClose) drawerClose.addEventListener("click", closeDrawer);
+
+    // Close drawer after clicking any nav link
+    if(drawer){
+      drawer.addEventListener("click", (e) => {
+        const a = e.target.closest("a");
+        if(a) closeDrawer();
+      });
+      window.addEventListener("resize", () => {
+        if(!window.matchMedia("(max-width: 980px)").matches) closeDrawer();
+      });
+      document.addEventListener("keydown", (e) => {
+        if(e.key === "Escape" && drawer.classList.contains("is-open")) closeDrawer();
+      });
+    }
+
+    // =========================================================
+    // Active nav highlight (desktop pills only)
+    // =========================================================
+    const navLinks = $$(".navlink").filter(a => a.closest(".nav"));
+    const sections = navLinks
+      .map(a => document.querySelector(a.getAttribute("href")))
+      .filter(Boolean);
+
+    if(sections.length){
+      const obs = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter(e => e.isIntersecting)
+          .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if(!visible) return;
+
+        navLinks.forEach(a => a.classList.remove("is-active"));
+        const id = "#" + visible.target.id;
+        const active = navLinks.find(a => a.getAttribute("href") === id);
+        if(active) active.classList.add("is-active");
+      }, { threshold:[0.22, 0.35, 0.45, 0.55] });
+
+      sections.forEach(s => obs.observe(s));
+    }
+
+    // Quick Tour
+    $("#btnTour").addEventListener("click", () => {
+      const tour = ["#facilities", "#pricing", "#booking"].map(id => $(id));
+      let i = 0;
+      const step = () => {
+        tour[i].scrollIntoView({behavior:"smooth", block:"start"});
+        i++;
+        if(i < tour.length) setTimeout(step, 900);
+      };
+      step();
+    });
+
+    // =========================================================
+    // Gallery Lightbox + Shuffle
+    // =========================================================
+    const lightbox = $("#lightbox");
+    const lbImg = $("#lbImg");
+    const lbCaption = $("#lbCaption");
+
+    function openLightbox(src, caption){
+      lbImg.src = src;
+      lbCaption.textContent = caption || "Preview";
+      lightbox.classList.add("is-open");
+      lightbox.setAttribute("aria-hidden", "false");
+      $("#lbClose").focus();
+    }
+    function closeLightbox(){
+      lightbox.classList.remove("is-open");
+      lightbox.setAttribute("aria-hidden", "true");
+      lbImg.src = "";
+    }
+
+    $$(".gimg").forEach(card => {
+      card.addEventListener("click", () => {
+        const img = $("img", card);
+        openLightbox(img.src, card.dataset.caption);
+      });
+    });
+
+    $("#lbClose").addEventListener("click", closeLightbox);
+    lightbox.addEventListener("click", (e) => { if(e.target === lightbox) closeLightbox(); });
+    document.addEventListener("keydown", (e) => {
+      if(e.key === "Escape" && lightbox.classList.contains("is-open")) closeLightbox();
+    });
+
+    function shuffleGallery(){
+      const grid = $("#galleryGrid");
+      const items = $$(".gimg", grid);
+      for(let i = items.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        grid.insertBefore(items[j], items[i]);
+      }
+    }
+    $("#btnShuffle").addEventListener("click", shuffleGallery);
+    $("#btnShuffleM").addEventListener("click", () => { shuffleGallery(); closeDrawer(); });
+
+    // =========================================================
+    // AUTH SYSTEM (localStorage demo)
+    // =========================================================
+    const USERS_KEY = "petstay_users_v2";     // [{name,email,pass}]
+    const SESSION_KEY = "petstay_session_v2"; // {email,name}
+
+    function loadUsers(){
+      try{ return JSON.parse(localStorage.getItem(USERS_KEY) || "[]"); }
+      catch{ return []; }
+    }
+    function saveUsers(users){
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
+    function getSession(){
+      try{ return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); }
+      catch{ return null; }
+    }
+    function setSession(sess){
+      localStorage.setItem(SESSION_KEY, JSON.stringify(sess));
+    }
+    function clearSession(){
+      localStorage.removeItem(SESSION_KEY);
+    }
+    function isLoggedIn(){
+      return !!getSession();
+    }
+
+    const authModal = $("#authModal");
+    const authBtn = $("#authBtn");
+    const authBtnM = $("#authBtnM");
+    const drawerAuthBtn = $("#drawerAuthBtn");
+
+    const authClose = $("#authClose");
+    const authTitle = $("#authTitle");
+    const authNote = $("#authNote");
+    const authForm = $("#authForm");
+    const authSubmitBtn = $("#authSubmitBtn");
+    const tabLogin = $("#tabLogin");
+    const tabSignup = $("#tabSignup");
+
+    const nameField = $("#nameField");
+    const aName = $("#aName");
+    const aEmail = $("#aEmail");
+    const aPass = $("#aPass");
+
+    const userChip = $("#userChip");
+    const userChipText = $("#userChipText");
+    const userChipM = $("#userChipM");
+    const userChipTextM = $("#userChipTextM");
+
+    let authMode = "login";
+
+    function openAuth(mode="login"){
+      authMode = mode;
+      syncAuthUI();
+      authModal.classList.add("is-open");
+      authModal.setAttribute("aria-hidden","false");
+      authNote.textContent = "";
+      setTimeout(() => (mode === "signup" ? aName : aEmail).focus(), 60);
+    }
+    function closeAuth(){
+      authModal.classList.remove("is-open");
+      authModal.setAttribute("aria-hidden","true");
+      authForm.reset();
+      authNote.textContent = "";
+    }
+
+    function syncAuthUI(){
+      const onLogin = authMode === "login";
+      tabLogin.classList.toggle("is-on", onLogin);
+      tabSignup.classList.toggle("is-on", !onLogin);
+      tabLogin.setAttribute("aria-selected", String(onLogin));
+      tabSignup.setAttribute("aria-selected", String(!onLogin));
+
+      authTitle.textContent = onLogin ? "Login" : "Sign up";
+      authSubmitBtn.textContent = onLogin ? "Login" : "Create Account";
+
+      nameField.style.display = onLogin ? "none" : "grid";
+      aName.required = !onLogin;
+    }
+
+    function updateAuthUI(){
+      const sess = getSession();
+
+      // desktop chip
+      if(sess){
+        userChip.style.display = "inline-flex";
+        userChipText.textContent = `${sess.name} • ${sess.email}`;
+        if(authBtn) authBtn.textContent = "Logout";
+      } else {
+        userChip.style.display = "none";
+        userChipText.textContent = "";
+        if(authBtn) authBtn.textContent = "Login";
+      }
+
+      // mobile chip in drawer
+      if(sess){
+        userChipM.style.display = "inline-flex";
+        userChipTextM.textContent = `${sess.name} • ${sess.email}`;
+        if(drawerAuthBtn) drawerAuthBtn.textContent = "Logout";
+      } else {
+        userChipM.style.display = "none";
+        userChipTextM.textContent = "";
+        if(drawerAuthBtn) drawerAuthBtn.textContent = "Login";
+      }
+    }
+
+    function requireLogin(message){
+      if(isLoggedIn()) return true;
+      openAuth("login");
+      authNote.textContent = message || "Please login to continue.";
+      return false;
+    }
+
+    tabLogin.addEventListener("click", () => { authMode="login"; syncAuthUI(); authNote.textContent=""; });
+    tabSignup.addEventListener("click", () => { authMode="signup"; syncAuthUI(); authNote.textContent=""; });
+
+    function authButtonAction(){
+      if(isLoggedIn()){
+        clearSession();
+        updateAuthUI();
+      } else {
+        openAuth("login");
+      }
+    }
+
+    if(authBtn) authBtn.addEventListener("click", authButtonAction);
+    if(authBtnM) authBtnM.addEventListener("click", () => { authButtonAction(); });
+    if(drawerAuthBtn) drawerAuthBtn.addEventListener("click", () => {
+      if(isLoggedIn()){
+        clearSession();
+        updateAuthUI();
+      } else {
+        closeDrawer();
+        openAuth("login");
+      }
+    });
+
+    authClose.addEventListener("click", closeAuth);
+    authModal.addEventListener("click", (e) => { if(e.target === authModal) closeAuth(); });
+    document.addEventListener("keydown", (e) => {
+      if(e.key === "Escape" && authModal.classList.contains("is-open")) closeAuth();
+    });
+
+    authForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = aEmail.value.trim().toLowerCase();
+      const pass = aPass.value;
+      const name = aName.value.trim();
+
+      if(!email || !pass){
+        authNote.textContent = "Enter email and password.";
+        return;
+      }
+      if(pass.length < 6){
+        authNote.textContent = "Password must be at least 6 characters.";
+        return;
+      }
+
+      const users = loadUsers();
+
+      if(authMode === "signup"){
+        if(!name){
+          authNote.textContent = "Enter your name to sign up.";
+          return;
+        }
+        if(users.some(u => u.email === email)){
+          authNote.textContent = "Email already registered. Try Login.";
+          return;
+        }
+        users.unshift({ name, email, pass });
+        saveUsers(users);
+        setSession({ name, email });
+        updateAuthUI();
+        authNote.textContent = "Account created. You are now logged in.";
+        setTimeout(closeAuth, 700);
+        return;
+      }
+
+      // login
+      const u = users.find(x => x.email === email && x.pass === pass);
+      if(!u){
+        authNote.textContent = "Invalid email or password.";
+        return;
+      }
+      setSession({ name: u.name, email: u.email });
+      updateAuthUI();
+      authNote.textContent = "Logged in successfully.";
+      setTimeout(closeAuth, 600);
+    });
+
+    updateAuthUI();
+
+    // =========================================================
+    // Contact form (requires login)
+    // =========================================================
+    $("#contactForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      if(!requireLogin("Please login to send a message.")) return;
+
+      $("#contactNote").textContent = "Message sent (demo). Thank you — we’ll respond soon.";
+      e.target.reset();
+      setTimeout(() => $("#contactNote").textContent = "", 3200);
+    });
+
+    // =========================================================
+    // Pricing -> Booking plan
+    // =========================================================
+    $$("[data-plan]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        $("#plan").value = btn.getAttribute("data-plan");
+        computeQuote();
+      });
+    });
+
+    // =========================================================
+    // Booking system
+    // =========================================================
+    const PRICES = { Classic: 480, Signature: 680, Elite: 920 };
+    const SIZE_MULTIPLIER = { Small: 1.00, Medium: 1.10, Large: 1.22 };
+    const ADDONS = { None: 0, Grooming: 220, ExtraPlay: 120, Pickup: 300 };
+
+    function computeQuote(){
+      const plan = $("#plan").value;
+      const size = $("#dogSize").value;
+      const addOn = $("#addOn").value;
+      const checkIn = $("#checkIn").value;
+      const checkOut = $("#checkOut").value;
+
+      let nights = 0;
+      if(checkIn && checkOut){
+        nights = daysBetween(checkIn, checkOut);
+        if(!Number.isFinite(nights)) nights = 0;
+      }
+
+      if(!checkIn || !checkOut || nights <= 0){
+        $("#qNights").textContent = "—";
+        $("#qTotal").textContent = "—";
+        $("#qBreakdown").textContent = "Select valid dates (check-out must be after check-in).";
+        return { valid:false };
+      }
+
+      const base = PRICES[plan] * nights;
+      const sizeAdj = Math.round(base * (SIZE_MULTIPLIER[size] - 1));
+      const addonCost = ADDONS[addOn];
+      const total = base + sizeAdj + addonCost;
+
+      $("#qNights").textContent = String(nights);
+      $("#qTotal").textContent = String(total.toLocaleString());
+      $("#qBreakdown").textContent =
+        `Base: HK$${PRICES[plan]} × ${nights} = HK$${base.toLocaleString()} • ` +
+        `Size: ${size} (+HK$${sizeAdj.toLocaleString()}) • ` +
+        `Add-On: ${addOn} (+HK$${addonCost.toLocaleString()})`;
+
+      return { valid:true, nights, total };
+    }
+
+    ["plan","dogSize","addOn","checkIn","checkOut"].forEach(id => {
+      $("#" + id).addEventListener("change", computeQuote);
+      $("#" + id).addEventListener("input", computeQuote);
+    });
+
+    // Seed dates
+    (function seedDates(){
+      const today = new Date();
+      const in1 = new Date(today); in1.setDate(today.getDate() + 1);
+      const in2 = new Date(today); in2.setDate(today.getDate() + 2);
+      const iso = d => d.toISOString().slice(0,10);
+
+      if(!$("#checkIn").value) $("#checkIn").value = iso(in1);
+      if(!$("#checkOut").value) $("#checkOut").value = iso(in2);
+      computeQuote();
+    })();
+
+    // Storage
+    const STORAGE_KEY = "petstay_bookings_v2";
+    function loadBookings(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }catch{
+        return [];
+      }
+    }
+    function saveBookings(bookings){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+    }
+
+    // Render booking table
+    function renderTable(){
+      const tbody = $("#bookingTbody");
+      const bookings = loadBookings();
+      tbody.innerHTML = "";
+
+      if(bookings.length === 0){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td colspan="10" style="padding:16px; color: rgba(11,26,25,0.65);">
+            No bookings yet. Submit the booking form to add your first booking.
+          </td>
+        `;
+        tbody.appendChild(tr);
+        return;
+      }
+
+      bookings.forEach(b => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td data-label="Booking ID"><span class="tag">${escapeHtml(b.id)}</span></td>
+          <td data-label="Owner">${escapeHtml(b.ownerName)}<br/><span class="note">${escapeHtml(b.ownerEmail)}</span></td>
+          <td data-label="Pet">${escapeHtml(b.dogName)}<br/><span class="note">${escapeHtml(b.dogSize)}</span></td>
+          <td data-label="Plan"><span class="tag ok">${escapeHtml(b.plan)}</span></td>
+          <td data-label="Dates">${formatDateISO(b.checkIn)} → ${formatDateISO(b.checkOut)}</td>
+          <td data-label="Nights">${b.nights}</td>
+          <td data-label="Add-On"><span class="tag">${escapeHtml(b.addOn)}</span></td>
+          <td data-label="Total (HK$)"><b>${Number(b.total).toLocaleString()}</b></td>
+          <td data-label="Status"><span class="tag ok">Saved</span></td>
+          <td data-label="Actions">
+            <button class="btn-mini" data-action="edit" data-id="${escapeHtml(b.id)}">Edit</button>
+            <button class="btn-mini danger" data-action="delete" data-id="${escapeHtml(b.id)}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Table actions (requires login)
+    $("#bookingTbody").addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if(!btn) return;
+
+      if(!requireLogin("Please login to manage bookings (edit/delete).")) return;
+
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+
+      if(action === "delete"){
+        const bookings = loadBookings().filter(b => b.id !== id);
+        saveBookings(bookings);
+        renderTable();
+        $("#bookingNote").textContent = "Booking deleted.";
+        setTimeout(() => $("#bookingNote").textContent = "", 2200);
+      }
+
+      if(action === "edit"){
+        const bookings = loadBookings();
+        const b = bookings.find(x => x.id === id);
+        if(!b) return;
+
+        $("#editId").value = b.id;
+        $("#ownerName").value = b.ownerName;
+        $("#ownerEmail").value = b.ownerEmail;
+        $("#dogName").value = b.dogName;
+        $("#dogSize").value = b.dogSize;
+        $("#plan").value = b.plan;
+        $("#addOn").value = b.addOn;
+        $("#checkIn").value = b.checkIn;
+        $("#checkOut").value = b.checkOut;
+        $("#notes").value = b.notes || "";
+
+        computeQuote();
+        $("#btnSubmitBooking").textContent = "Update Booking";
+        $("#bookingNote").textContent = "Editing mode: update fields then click “Update Booking”.";
+        setTimeout(() => $("#bookingNote").textContent = "", 3200);
+        $("#ownerName").focus();
+      }
+    });
+
+    // Submit booking (requires login)
+    $("#bookingForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      if(!requireLogin("Please login to add a booking.")) return;
+
+      const quote = computeQuote();
+      if(!quote.valid){
+        $("#bookingNote").textContent = "Fix the dates (check-out must be after check-in).";
+        return;
+      }
+
+      const payload = {
+        id: $("#editId").value || uid(),
+        ownerName: $("#ownerName").value.trim(),
+        ownerEmail: $("#ownerEmail").value.trim(),
+        dogName: $("#dogName").value.trim(),
+        dogSize: $("#dogSize").value,
+        plan: $("#plan").value,
+        addOn: $("#addOn").value,
+        checkIn: $("#checkIn").value,
+        checkOut: $("#checkOut").value,
+        nights: quote.nights,
+        total: quote.total,
+        notes: $("#notes").value.trim()
+      };
+
+      if(!payload.ownerName || !payload.ownerEmail || !payload.dogName){
+        $("#bookingNote").textContent = "Complete required fields (owner, email, pet name).";
+        return;
+      }
+
+      const bookings = loadBookings();
+      const idx = bookings.findIndex(b => b.id === payload.id);
+
+      if(idx >= 0){
+        bookings[idx] = payload;
+        $("#bookingNote").textContent = "Booking updated successfully.";
+      } else {
+        bookings.unshift(payload);
+        $("#bookingNote").textContent = "Booking added successfully.";
+      }
+
+      saveBookings(bookings);
+      renderTable();
+
+      $("#editId").value = "";
+      $("#btnSubmitBooking").textContent = "Add Booking";
+
+      $("#ownerName").value = "";
+      $("#ownerEmail").value = "";
+      $("#dogName").value = "";
+      $("#notes").value = "";
+
+      setTimeout(() => $("#bookingNote").textContent = "", 2400);
+    });
+
+    $("#btnResetForm").addEventListener("click", () => {
+      $("#bookingForm").reset();
+      $("#editId").value = "";
+      $("#btnSubmitBooking").textContent = "Add Booking";
+
+      const today = new Date();
+      const in1 = new Date(today); in1.setDate(today.getDate() + 1);
+      const in2 = new Date(today); in2.setDate(today.getDate() + 2);
+      const iso = d => d.toISOString().slice(0,10);
+
+      $("#checkIn").value = iso(in1);
+      $("#checkOut").value = iso(in2);
+      $("#plan").value = "Signature";
+      $("#dogSize").value = "Small";
+      $("#addOn").value = "None";
+      computeQuote();
+    });
+
+    $("#btnClearAll").addEventListener("click", () => {
+      if(!requireLogin("Please login to clear all bookings.")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      renderTable();
+      $("#bookingNote").textContent = "All bookings cleared.";
+      setTimeout(() => $("#bookingNote").textContent = "", 2200);
+    });
+
+    // Init
+    document.getElementById("year").textContent = new Date().getFullYear();
+    renderTable();
+    computeQuote();
+  </script>
+</body>
+</html>
